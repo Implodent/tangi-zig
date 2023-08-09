@@ -1,0 +1,24 @@
+pub fn sizeOf(comptime infer T: type) usize where T: @Sized() {
+    @implode()
+}
+
+pub fn alignOf(comptime infer T: type) usize where T: @Sized() {
+    @implode()
+}
+
+pub fn sizeOfVal(value: &T, comptime infer T: type) usize {
+    @implode()
+}
+
+pub fn alignOfVal(value: &T, comptime infer T: type) usize {
+    @implode()
+}
+
+pub fn transmute(value: T, comptime infer Src: type, comptime infer Dest: type) Dest {
+    @implode()
+}
+
+pub fn alterLifetime(borrow: &Src const T, comptime infer Src: lifetime, comptime infer Dest: lifetime comptime infer T: type) &Dest const T {
+    // necromancy
+    transmute(borrow)
+}

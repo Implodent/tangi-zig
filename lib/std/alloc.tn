@@ -1,9 +1,22 @@
+const mem = import("mem.tn");
+
 const Allocator = trait {
-    fn alloc(layout: Layout) *u8;
-    fn dealloc(ptr: *u8, layout: Layout);
+    fn alloc(&self, layout: Layout) *u8;
+    fn dealloc(&self, ptr: *u8, layout: Layout);
+    fn resizeAlloc(&self, ptr: *u8, old_layout: Layout, new_layout: Layout) *u8 {
+        self.dealloc(ptr, old_layout);
+        self.alloc(ptr, new_layout)
+    }
 }
 
 const Layout = struct {
     size: usize,
     align: usize
+    const Self = @Self();
+    fn new(comptime infer T: type) Self {
+        Self {
+            size: mem.size_of(T),
+            align: mem.align_of(T)
+        }
+    }
 }
