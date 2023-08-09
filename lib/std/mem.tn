@@ -5,6 +5,9 @@ const Allocator = trait {
 
     fn allocate(&self, layout: Layout) Error!*u8;
     fn free(&self, ptr: *u8, layout: Layout);
+    fn dealloc(&self, comptime infer T: type, size: usize) Error!*T where T: @Sized() {
+        @ptrCast(try free(.{ .size = @sizeOf(T) * size, .align = @alignOf(T) }))
+    }
     fn alloc(&self, comptime infer T: type, size: usize) Error!*T where T: @Sized() {
         @ptrCast(try allocate(.{ .size = @sizeOf(T) * size, .align = @alignOf(T) }))
     }
@@ -13,6 +16,9 @@ const Allocator = trait {
     }
     fn allocVal(&self, comptime infer T: type, size: usize, val: &T) Error!*T {
         @ptrCast(try allocate(.{ .size = @sizeOfVal(val) * size, .align = @alignOfVal(val) }))
+    }
+    fn deallocVal(&self, comptime infer T: type, size: usize, val: &T) Error!*T {
+        @ptrCast(try free(.{ .size = @sizeOfVal(val) * size, .align = @alignOfVal(val) }))
     }
     fn createVal(&self, comptime infer T: type, val: &T) Error!*T {
         try alloc(T, 1, val)
