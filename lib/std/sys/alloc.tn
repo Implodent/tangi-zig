@@ -1,0 +1,52 @@
+const b = import("builtin");
+const Allocator = import("../mem.tn").{.Allocator, .Layout};
+
+pub const auto_allocator = AutoAllocator.new();
+const AutoAllocator = enum {
+    libc,
+    winapi
+    const Self: type = @Self();
+    pub fn new() Self {
+        if (b.os == "windows") {
+            Self { .winapi }
+        } else {
+            Self { .libc }
+        }
+    }
+};
+
+impl Allocator for AutoAllocator {
+    fn allocate(&self, layout: Layout) Error!*u8 {
+        return match (self) {
+            .libc => libc_allocator.allocate(layout)
+            .winapi => winapi_allocator.allocate(layout)
+        };
+    }
+    fn free(&self, ptr: *u8, layout: Layout) {
+        return match (self) {
+            .libc => libc_allocator.free(ptr, layout)
+            .winapi => winapi_allocator.free(ptr, layout)
+        };
+    }
+}
+
+@derive(AutoAllocator, @Clone, @Copy)
+
+const libc = import("libc");
+
+pub const libc_allocator = LibcAllocator.new();
+const LibcAllocator = struct {};
+
+impl Allocator for LibcAllocator {
+    fn allocate(&self, layout: Layout) Error!*u8 {
+        const ptr = libc.malloc(layout.size);
+        // ENOMEM = 12
+        if *libc.__errno_location() == libc.ENOMEM {
+            return Error.OutOfMemory;
+        };
+        return ptr;
+    }
+    fn free(&self, ptr: *u8, layout: Layout) {
+        libc.free(ptr);
+    }
+}
