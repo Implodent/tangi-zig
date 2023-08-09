@@ -36,3 +36,7 @@ const Layout = struct {
         }
     }
 };
+
+pub const auto_allocator = import("sys/alloc.tn").auto_allocator;
+pub const libc_allocator = import("sys/alloc.tn").libc_allocator;
+pub const winapi_allocator = import("sys/alloc.tn").winapi_allocator;
