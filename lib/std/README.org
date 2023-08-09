@@ -5,6 +5,9 @@
 The ~box~ module contains the ~Box(T)~ type that allows easy access to heap-allocated data.
 T in ~Box(T)~ can be !: Sized (dynamically dispatched values etc.),
 which is often the whole point that heap allocations (and consequently ~Box~) are used.
+~Box~ can also easily allow for recursive types,
+and can greatly increase performace if you need to carry a big chunk of data around,
+because you don't need to copy it around.
 ** ~cell~
 The ~cell~ module contains the ~UnsafeCell(T)~ and ~Cell(T)~ (TODO) types.
 *** ~UnsafeCell~
