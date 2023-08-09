@@ -1,1 +1,17 @@
-// todo
+const Allocator = import("mem.tn").Allocator;
+
+pub fn Box(comptime infer T: type, comptime infer Alloc: type, allocator: Alloc) type where Alloc: Allocator {
+    struct {
+        ptr: *T
+        const Self = @Self();
+        pub fn new(v: T) -> Error!Self {
+            let ptr = try allocator.createVal(v);
+
+            *ptr = v;
+
+            Self { .ptr: ptr }
+        }
+    }
+}
+
+// noth please design @Deref, @Drop, and generic trait impls
