@@ -50,3 +50,19 @@ impl Allocator for LibcAllocator {
         libc.free(ptr);
     }
 }
+
+@derive(LibcAllocator, @Clone, @Copy)
+
+pub const winapi_allocator = WinapiAllocator.new()
+const WinapiAllocator = struct {}
+
+impl Allocator for WinapiAllocator {
+    fn allocate(&self, layout: Layout) Error!*u8 {
+        @todo();
+    }
+    fn free(&self, ptr: *u8, layout: Layout) {
+        @todo();
+    }
+}
+
+@derive(WinapiAllocator, @Clone, @Copy)
