@@ -74,7 +74,7 @@ pub const Type = union(enum) {
         pub const Field = struct { ty: Type };
     };
 
-    pub const primitive_map = s.ComptimeStringMap(Type, [_]prim_pair{ .{ "void", .void }, .{ "bool", .{ .Primitive = Primitive.Bool } } } ++ genNumbers());
+    pub const primitive_map = s.ComptimeStringMap(Type, [_]prim_pair{ .{ "void", .void }, .{ "bool", .{ .primitive = Primitive.Bool } } } ++ genNumbers());
     const prim_pair = struct { []const u8, Type };
 
     fn genNumbers() []const prim_pair {
@@ -83,12 +83,12 @@ pub const Type = union(enum) {
             result = result ++ &[2]prim_pair{
                 .{
                     s.fmt.comptimePrint("u{}", .{bits}),
-                    .{ .Primitive = .{ .Number = .{ .signedness = .unsigned, .bits = @as(u16, bits) } } },
+                    .{ .primitive = .{ .Number = .{ .signedness = .unsigned, .bits = @as(u16, bits) } } },
                 },
                 .{
                     s.fmt.comptimePrint("i{}", .{bits}),
                     .{
-                        .Primitive = .{
+                        .primitive = .{
                             .Number = .{
                                 .signedness = .signed,
                                 .bits = @as(u16, bits),
@@ -98,6 +98,6 @@ pub const Type = union(enum) {
                 },
             };
         }
-        return result ++ &[2]prim_pair{ .{ "f32", .{ .Primitive = .{ .Float = .{ .bits = 32 } } } }, .{ "f64", .{ .Primitive = .{ .Float = .{ .bits = 64 } } } } };
+        return result ++ &[2]prim_pair{ .{ "f32", .{ .primitive = .{ .Float = .{ .bits = 32 } } } }, .{ "f64", .{ .primitive = .{ .Float = .{ .bits = 64 } } } } };
     }
 };

@@ -6,7 +6,7 @@ The ~box~ module contains the ~Box(T)~ type that allows easy access to heap-allo
 T in ~Box(T)~ can be !: Sized (dynamically dispatched values etc.),
 which is usually the whole point that heap allocations (and consequently ~Box~) are used.
 ** ~cell~
-The ~cell~ module contains the ~UnsafeCell(T)~ and [[*~Cell~][~Cell~ (TODO)]] types.
+The ~cell~ module contains the ~UnsafeCell(T)~ and ~Cell(T)~ (TODO) types.
 *** ~UnsafeCell~
 UnsafeCell is a interior mutability primitive, allowing the access of a raw pointer of T (in ~UnsafeCell(T)~) from an immutable reference to ~UnsafeCell(T)~.
 *** TODO ~Cell~
