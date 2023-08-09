@@ -3,12 +3,12 @@ const Allocator = trait {
         OutOfMemory
     };
 
-    fn allocate(layout: Layout) Error!*u8;
-    fn free(ptr: *u8, layout: Layout);
-    fn alloc(comptime infer T: type, size: usize) Error!*T {
+    fn allocate(&self, layout: Layout) Error!*u8;
+    fn free(&self, ptr: *u8, layout: Layout);
+    fn alloc(&self, comptime infer T: type, size: usize) Error!*T {
         @ptrCast(try allocate(.{ .size = @sizeOf(T) * size, .align = @alignOf(T) }))
     }
-    fn create(comptime infer T: type) Error!*T {
+    fn create(&self, comptime infer T: type) Error!*T {
         try alloc(T, 1)
     }
 };
