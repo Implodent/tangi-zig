@@ -1,5 +1,5 @@
 const b = import("builtin");
-const Allocator = import("../alloc.tn").{.Allocator, .Layout};
+const Allocator = import("../mem.tn").{.Allocator, .Layout};
 
 pub const auto_allocator = AutoAllocator.new();
 const AutoAllocator = union(enum) {
