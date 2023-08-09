@@ -1,0 +1,27 @@
+const b = import("builtin");
+const Allocator = import("../alloc.tn").{.Allocator, .Layout};
+
+pub const auto_allocator = AutoAllocator.new();
+const AutoAllocator = union(enum) {
+    libc: libc_allocator,
+    winapi: winapi_allocator
+    const Self: type = @Self();
+    pub fn new() Self {
+        if (b.os == "windows") {
+            Self { winapi:  }
+        } else {
+            Self
+        }
+    }
+};
+
+impl Allocator for AutoAllocator {
+    fn alloc()
+}
+
+@derive(AutoAllocator, @Clone, @Copy)
+
+const libc = import("libc");
+
+pub const libc_allocator = LibcAllocator.new()
+const LibcAllocator = struct {}

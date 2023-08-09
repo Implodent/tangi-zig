@@ -1,24 +1,19 @@
-pub fn sizeOf(comptime infer T: type) usize where T: @Sized() {
-    @implode()
-}
+const Allocator = trait {
+    pub const Error = enum {
+        OutOfMemory
+    };
 
-pub fn alignOf(comptime infer T: type) usize where T: @Sized() {
-    @implode()
-}
+    fn allocate(layout: Layout) Error!*u8;
+    fn free(ptr: *u8, layout: Layout);
+    fn alloc(comptime infer T: type, size: usize) Error!*T {
+        @ptrCast(try allocate(.{ .size = @sizeOf(T) * size, .align = @alignOf(T) }))
+    }
+    fn create(comptime infer T: type) Error!*T {
+        try alloc(T, 1)
+    }
+};
 
-pub fn sizeOfVal(value: &T, comptime infer T: type) usize {
-    @implode()
-}
-
-pub fn alignOfVal(value: &T, comptime infer T: type) usize {
-    @implode()
-}
-
-pub fn transmute(value: T, comptime infer Src: type, comptime infer Dest: type) Dest {
-    @implode()
-}
-
-pub fn alterLifetime(borrow: &Src const T, comptime infer Src: lifetime, comptime infer Dest: lifetime comptime infer T: type) &Dest const T {
-    // necromancy
-    transmute(borrow)
-}
+const Layout = struct {
+    size: usize,
+    align: usize
+};

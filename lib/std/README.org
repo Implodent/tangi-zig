@@ -1,0 +1,19 @@
+#+title: Tangi standard library
+
+* std
+** ~box~ and ~Box(T)~
+The ~box~ module contains the ~Box(T)~ type that allows easy access to heap-allocated data.
+T in ~Box(T)~ can be !: Sized (dynamically dispatched values etc.),
+which is usually the whole point that heap allocations (and consequently ~Box~) are used.
+** ~cell~
+The ~cell~ module contains the ~UnsafeCell(T)~ and [[*~Cell~][~Cell~ (TODO)]] types.
+*** ~UnsafeCell~
+UnsafeCell is a interior mutability primitive, allowing the access of a raw pointer of T (in ~UnsafeCell(T)~) from an immutable reference to ~UnsafeCell(T)~.
+*** TODO ~Cell~
+Cell is a smart pointer allowing the mutation of the value ~T~ having only ~&const Cell(T)~,
+but allowing to get the value only by copying, so there is no single owner of the data ~T~.
+** TODO ~env~
+The ~env~ module contains primitives for access to the runtime environment,
+like the directory the program is running in, its' arguments, etc.
+** ~mem~
+The ~mem~ module contains memory allocation and management primitives like the ~Allocator~ trait, that enables heap allocations.

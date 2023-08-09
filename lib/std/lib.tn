@@ -5,3 +5,4 @@ pub const vec = import("vec.tn").Vec;
 pub const box = import("box.tn").Box;
 pub const cell = import("cell.tn");
 pub const alloc = import("alloc.tn");
+pub const mem = import("mem.tn")

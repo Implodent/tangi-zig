@@ -9,10 +9,9 @@ pub const Item = union(enum) {
     pub const Fn = struct {
         visibility: Visibility,
         signature: Signature,
-        name: []const u8,
         pub const Param = struct {
-            is_comptime: bool,
-            is_infer: bool,
+            is_comptime: bool = false,
+            is_infer: bool = false,
             ty: Type,
         };
         pub const Signature = struct { name: []const u8, params: s.StringHashMap(Param), return_type: Type };
@@ -26,10 +25,14 @@ pub const Type = union(enum) {
     error_union: ErrorUnion,
     tuple: Tuple,
     structure: Structure,
+    void,
+    named: []const u8,
     // trait: Trait,
 
     pub const Primitive = union(enum) {
         Number: Number,
+        Float: Float,
+        Bool,
         NumSize: NumSize,
 
         // signed / unsigned
@@ -39,6 +42,7 @@ pub const Type = union(enum) {
             signedness: Signedness,
             bits: u16,
         };
+        pub const Float = struct { bits: u16 };
         // usize / isize
         pub const NumSize = struct { signedness: Signedness };
     };
@@ -69,4 +73,31 @@ pub const Type = union(enum) {
 
         pub const Field = struct { ty: Type };
     };
+
+    pub const primitive_map = s.ComptimeStringMap(Type, [_]prim_pair{ .{ "void", .void }, .{ "bool", .{ .Primitive = Primitive.Bool } } } ++ genNumbers());
+    const prim_pair = struct { []const u8, Type };
+
+    fn genNumbers() []const prim_pair {
+        comptime var result: []const prim_pair = &.{};
+        inline for (@as(u8, 1)..128) |bits| {
+            result = result ++ &[2]prim_pair{
+                .{
+                    s.fmt.comptimePrint("u{}", .{bits}),
+                    .{ .Primitive = .{ .Number = .{ .signedness = .unsigned, .bits = @as(u16, bits) } } },
+                },
+                .{
+                    s.fmt.comptimePrint("i{}", .{bits}),
+                    .{
+                        .Primitive = .{
+                            .Number = .{
+                                .signedness = .signed,
+                                .bits = @as(u16, bits),
+                            },
+                        },
+                    },
+                },
+            };
+        }
+        return result ++ &[2]prim_pair{ .{ "f32", .{ .Primitive = .{ .Float = .{ .bits = 32 } } } }, .{ "f64", .{ .Primitive = .{ .Float = .{ .bits = 64 } } } } };
+    }
 };
