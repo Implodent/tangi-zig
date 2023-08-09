@@ -1,11 +1,14 @@
 //! thank you ThePrimeagen for an amazing reference implementation of a lexer.
 const Self = @This();
+const r = @import("reporting.zig");
 
+token_start_position: usize = 0,
 read_position: usize = 0,
 position: usize = 0,
 ch: u8 = 0,
 input: []const u8,
 last_token: Token = .eof,
+expectation: ?@typeInfo(Token).Union.tag_type.? = null,
 
 pub fn init(input: []const u8) Self {
     var lex = Self{
@@ -23,6 +26,7 @@ pub fn has_tokens(self: *Self) bool {
 
 pub fn next_token(self: *Self) Token {
     self.skip_whitespace();
+    self.token_start_position = self.position;
     const tok: Token = switch (self.ch) {
         '{' => .lcurly,
         '}' => .rcurly,
@@ -76,6 +80,10 @@ pub fn next_token(self: *Self) Token {
     return tok;
 }
 
+pub fn span(self: *const Self) r.Span {
+    return r.Span{ .start = self.token_start_position, .end = self.position };
+}
+
 fn read_str(self: *Self) []const u8 {
     const initial = self.position;
     self.read_char();
@@ -83,7 +91,7 @@ fn read_str(self: *Self) []const u8 {
     return self.input[initial + 1 .. self.position];
 }
 
-fn peek_char(self: *Self) u8 {
+pub fn peek_char(self: *Self) u8 {
     if (self.read_position >= self.input.len) {
         return 0;
     } else {
