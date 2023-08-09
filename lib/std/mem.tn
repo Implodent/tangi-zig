@@ -5,15 +5,34 @@ const Allocator = trait {
 
     fn allocate(&self, layout: Layout) Error!*u8;
     fn free(&self, ptr: *u8, layout: Layout);
-    fn alloc(&self, comptime infer T: type, size: usize) Error!*T {
+    fn alloc(&self, comptime infer T: type, size: usize) Error!*T where T: @Sized() {
         @ptrCast(try allocate(.{ .size = @sizeOf(T) * size, .align = @alignOf(T) }))
     }
-    fn create(&self, comptime infer T: type) Error!*T {
+    fn create(&self, comptime infer T: type) Error!*T where T: @Sized() {
         try alloc(T, 1)
+    }
+    fn allocVal(&self, comptime infer T: type, size: usize, val: &T) Error!*T {
+        @ptrCast(try allocate(.{ .size = @sizeOfVal(val) * size, .align = @alignOfVal(val) }))
+    }
+    fn createVal(&self, comptime infer T: type, val: &T) Error!*T {
+        try alloc(T, 1, val)
     }
 };
 
 const Layout = struct {
-    size: usize,
-    align: usize
+    pub size: usize,
+    pub align: usize
+    const Self = @Self();
+    pub fn new(comptime infer T: type) Self where T: @Sized() {
+        Self {
+            .size: @sizeOf(T),
+            .align: @alignOf(T)
+        }
+    }
+    pub fn newVal(comptime infer T: type, val: &T) Self {
+        Self {
+            .size: @sizeOfVal(val),
+            .align: @alignOfVal(val)
+        }
+    }
 };
