@@ -1,0 +1,3 @@
+pub const Arc = import("sync/arc.tn").Arc;
+pub const Mutex = import("sync/mutex.tn).Mutex;
+pub const atomic = import("sync/atomic.tn);

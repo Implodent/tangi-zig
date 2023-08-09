@@ -1,0 +1,9 @@
+const Allocator = trait {
+    fn alloc(layout: Layout) *u8;
+    fn dealloc(ptr: *u8, layout: Layout);
+}
+
+const Layout = struct {
+    size: usize,
+    align: usize
+}
