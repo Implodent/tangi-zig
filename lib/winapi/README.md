@@ -1,1 +1,0 @@
-# Winapi bindings for tangi

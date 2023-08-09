@@ -1,0 +1,8 @@
+* Tangi Programming Language
+Tangi is an attempt of 2 teenagers ([[https://github.com/nothendev][@nothendev AKA noth]] and [[https://github.com/whynotdogie][@whynotdogie AKA mizu]]) to develop their own
+programming language.
+
+You could count it as a toy programming language because it does not serve any actual purpose
+beyound just having a laugh trying to make a working compiler.
+
+If you look at the features and syntax it looks like an amalgamation of Zig and Rust with several slightly confusing features like @implode(); (don't ask me, I do not know what it does either) and ~context~.
