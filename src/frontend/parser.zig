@@ -11,7 +11,7 @@ allocator: s.mem.Allocator,
 reporter: *r.Reporting,
 file_id: usize,
 
-pub const Error = error{ invalid_token, eof, expected_type };
+pub const Error = error{ invalid_token, eof, expected_type, duplicate_param_name };
 
 fn UnionTagToFieldType(comptime U: type, comptime tag: @typeInfo(U).Union.tag_type.?) type {
     const u = @typeInfo(U).Union;
@@ -34,15 +34,9 @@ fn ask(self: *Self, comptime token: @typeInfo(Lexer.Token).Union.tag_type.?) !Un
 pub fn parse_reporting(self: *Self) !?a.File {
     return self.ask_file() catch |err| {
         try self.reporter.report(switch (err) {
-            error.invalid_token => r.Diagnostic{
-                .file_id = self.file_id,
-                .id = e.InvalidToken,
-                .level = .err,
-                .span = self.lexer.span(),
-                .text = try s.fmt.allocPrint(self.allocator, "invalid token {}, expected {?}", .{ self.lexer.last_token, self.lexer.expectation }),
-            },
-            error.expected_type => r.Diagnostic{ .file_id = self.file_id, .id = e.ExpectedType, .level = .err, .span = self.lexer.span(), .text = "Expected a type" },
-            else => r.Diagnostic{ .file_id = self.file_id, .id = "EFUCKYOU", .level = .bug, .span = self.lexer.span(), .text = "fuck you." },
+            error.invalid_token => r.Diagnostic.init(.Error).with_id(e.InvalidToken).with_message(try s.fmt.allocPrint(self.allocator, "invalid token {s}, expected {?s}", .{ @tagName(self.lexer.last_token), if (self.lexer.expectation) |expectation| @tagName(expectation) else null })).with_labels(&[_]r.Diagnostic.Label{r.Diagnostic.Label.primary(self.file_id, self.lexer.span()).with_message("here")}),
+            // error.expected_type => r.Diagnostic{ .file_id = self.file_id, .id = e.ExpectedType, .level = .err, .span = self.lexer.span(), .text = "Expected a type" },
+            else => r.Diagnostic.init(.Bug).with_id("EFUCKYOU").with_message("h"),
         });
         return null;
     };
@@ -76,7 +70,7 @@ fn ask_item(self: *Self) !a.Item {
 
 fn ask_fn_param(self: *Self) !struct { name: []const u8, param: a.Item.Fn.Param } {
     const name = try self.ask(.ident);
-    try self.ask(.comma);
+    try self.ask(.colon);
     const ty = try self.ask_type();
     return .{
         .name = name,
@@ -89,6 +83,15 @@ fn ask_fn(self: *Self, already_consumed_fn_token: bool, vis: a.Visibility) !a.It
     const name = try self.ask(.ident);
     var params = s.StringHashMap(a.Item.Fn.Param).init(self.allocator);
     try self.ask(.lparen);
+    var just_started = true;
+    while (just_started or self.lexer.next_token() == .comma) {
+        just_started = false;
+        if (self.lexer.peek_char() == ')') break;
+        const next_param = try self.ask_fn_param();
+        const result = try params.getOrPut(next_param.name);
+        if (result.found_existing) return Error.duplicate_param_name;
+        result.value_ptr.* = next_param.param;
+    }
     try self.ask(.rparen);
 
     var return_type = a.Type{ .void = {} };
@@ -103,4 +106,11 @@ fn ask_type(self: *Self) !a.Type {
         .ident => |ident| a.Type.primitive_map.get(ident) orelse .{ .named = ident },
         else => Error.expected_type,
     };
+}
+
+fn eqq(token: Lexer.Token, tag: @typeInfo(Lexer.Token).Union.tag_type.?) bool {
+    if (token == tag) {
+        return true;
+    }
+    return false;
 }

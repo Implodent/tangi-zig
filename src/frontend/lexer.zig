@@ -80,8 +80,8 @@ pub fn next_token(self: *Self) Token {
     return tok;
 }
 
-pub fn span(self: *const Self) r.Span {
-    return r.Span{ .start = self.token_start_position, .end = self.position };
+pub fn span(self: *const Self) r.Diagnostic.Span {
+    return .{ .start = self.token_start_position, .end = self.position };
 }
 
 fn read_str(self: *Self) []const u8 {

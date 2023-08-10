@@ -1,1 +1,1 @@
-fn hello(comptime infer T: type) void {}
+fn hello(t: i32) void {}
