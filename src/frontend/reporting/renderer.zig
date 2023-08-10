@@ -328,6 +328,7 @@ pub fn Renderer(comptime W: type) type {
             _ = source;
             {
                 try self.outer_gutter_number(line_number, outer_padding);
+                try self.border_left();
             }
         }
         fn snippet_locus(self: *Self, locus: Locus) !void {
