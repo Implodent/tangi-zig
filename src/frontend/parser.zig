@@ -22,7 +22,10 @@ fn UnionTagToFieldType(comptime U: type, comptime tag: @typeInfo(U).Union.tag_ty
     @compileError("not found???");
 }
 
-fn ask(self: *Self, comptime token: @typeInfo(Lexer.Token).Union.tag_type.?) !UnionTagToFieldType(Lexer.Token, token) {
+inline fn ask(
+    self: *Self,
+    comptime token: @typeInfo(Lexer.Token).Union.tag_type.?,
+) !UnionTagToFieldType(Lexer.Token, token) {
     self.lexer.expectation = token;
     const next_token = self.lexer.next_token();
     if (next_token == token) {

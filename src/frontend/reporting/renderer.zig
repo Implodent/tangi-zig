@@ -2,6 +2,7 @@ const s = @import("std");
 const str = @import("../../util/zig-string.zig");
 const ansi = @import("../../ansi-term/main.zig");
 const u = @import("../../util.zig");
+const iter = @import("../../util/itertools.zig");
 
 fn countDigits(n: usize) usize {
     var nf: f64 = @floatFromInt(n +| @as(usize, 1));
@@ -36,6 +37,7 @@ const start_context_lines: usize = 3;
 const end_context_lines: usize = 1;
 const before_label_lines: usize = 0;
 const after_label_lines: usize = 0;
+const trim_chars: []const u8 = "\n\r\x00";
 
 const Styles = struct {
     const blue: ansi.style.Color = if (@import("builtin").os.tag == .windows) .{ .Cyan = {} } else .{ .Blue = {} };
@@ -230,10 +232,18 @@ pub fn Renderer(comptime W: type) type {
                 const is_end = idx == labeled_files.items.len - 1;
                 _ = is_end;
                 const source = try files.source(labeled_file.file_id);
-                _ = source;
                 if (labeled_file.lines.count() != 0) {
                     try self.render_snippet_start(outer_padding, .{ .name = labeled_file.name, .location = labeled_file.location });
                     try self.render_snippet_empty(outer_padding, diagnostic.severity, labeled_file.num_multi_labels, &.{});
+                }
+
+                var lines = iter.peekable(s.AutoHashMap(usize, Line).Entry, labeled_file.lines.iterator());
+
+                while (lines.next()) |line_entry| {
+                    const line_index: usize = line_entry.key_ptr.*;
+                    _ = line_index;
+                    const line: *Line = line_entry.value_ptr;
+                    try self.render_snippet_source(outer_padding, line.number, source[line.range.start..line.range.end], diagnostic.severity, line.single_labels.items, labeled_file.num_multi_labels, line.multi_labels.items);
                 }
             }
         }
@@ -317,18 +327,40 @@ pub fn Renderer(comptime W: type) type {
             }
         }
 
-        fn render_snippet_source(self: *Self, outer_padding: usize, line_number: usize, _source: []const u8, severity: Diagnostic.Severity, single_labels: []const SingleLabel, num_multi_labels: usize, multi_labels: []const MultiLabelTriple) !void {
-            _ = multi_labels;
-            _ = num_multi_labels;
+        fn render_snippet_source(
+            self: *Self,
+            outer_padding: usize,
+            line_number: usize,
+            _source: []const u8,
+            severity: Diagnostic.Severity,
+            single_labels: []const SingleLabel,
+            num_multi_labels: usize,
+            multi_labels: []const MultiLabelTriple,
+        ) !void {
             _ = single_labels;
-            _ = severity;
-            var __source = try str.String.init_with_contents(self.allocator, _source);
-            __source.trimEnd(&[_]u8{ "\n", "\r", "\x00" });
-            const source = (try __source.toOwned()) orelse return error.omfg;
-            _ = source;
+            const source = s.mem.trimRight(_source, trim_chars);
             {
                 try self.outer_gutter_number(line_number, outer_padding);
                 try self.border_left();
+
+                var multi_labels_iter = iter.peekable(iter.slice(MultiLabelTriple, multi_labels));
+                for (0..num_multi_labels) |label_column| {
+                    const result: ?*const MultiLabelTriple = multi_labels_iter.peek();
+                    if (result) |*peeked| {
+                        if (peeked.pos == label_column) {
+                            switch (peeked.label) {
+                                .top => |start| {
+                                    if (start <= source.len - s.mem.trimLeft(u8, source, " \n\r").len) {
+                                        try self.label_multi_top_left(severity, peeked.style);
+                                    } else {
+                                        try self.inner_gutter_space();
+                                    }
+                                },
+                                .left, .bottom => try self.label_multi_left(severity, peeked.style, null),
+                            }
+                        }
+                    }
+                }
             }
         }
         fn snippet_locus(self: *Self, locus: Locus) !void {
